@@ -1,19 +1,18 @@
-export const API_URL = "http://localhost:8000";
+import axios from "axios";
 
-export async function apiGet(path: string) {
-  const res = await fetch(API_URL + path, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-  });
-  return res.json();
-}
+const api = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+});
 
-export async function apiPost(path: string, body: any) {
-  const res = await fetch(API_URL + path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
-  return res.json();
-}
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+     const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  }
+  return config;
+});
+
+export default api;

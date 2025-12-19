@@ -1,44 +1,79 @@
 "use client";
+
 import { useState } from "react";
-import { apiPost } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleLogin() {
-    const res = await apiPost("/auth/login", { phone, password });
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    if (res.role === "user") router.push("/user/dashboard");
-    else if (res.role === "owner") router.push("/owner/dashboard");
-    else router.push("/delivery/dashboard");
-  }
+    try {
+      const params = new URLSearchParams({ phone, password });
+
+      const res = await fetch(
+        `http://127.0.0.1:8000/auth/login?${params.toString()}`,
+        {
+          method: "POST",
+          credentials: "include", // 🔥 REQUIRED for cookies
+        }
+      );
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+
+     // 🔥 SAVE AUTH DATA (REQUIRED)
+localStorage.setItem("access_token", data.access_token);
+localStorage.setItem("role", data.role);
+localStorage.setItem("user_id", data.user_id); // ✅ REQUIRED
+localStorage.removeItem("cart"); // ✅ THIS FIXES IT
+
+      // 🔥 USE replace() to prevent back-loop
+      if (data.role === "owner") router.replace("/owner/items");
+      if (data.role === "user") router.replace("/user/items");
+      if (data.role === "delivery") router.replace("/delivery/orders");
+
+    } catch {
+      setError("Invalid phone or password");
+    }
+  };
 
   return (
-    <div className="p-10 max-w-sm mx-auto">
-      <h1 className="text-xl font-bold mb-4">Login</h1>
+    <div style={{ maxWidth: 400, margin: "100px auto" }}>
+      <h2>Login</h2>
 
-      <input className="border p-2 w-full"
-        placeholder="Phone"
-        value={phone}
-        onChange={e => setPhone(e.target.value)}
-      />
+      <form onSubmit={handleLogin}>
+        <input
+          placeholder="Phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+        />
+        <br /><br />
 
-      <input className="border p-2 w-full mt-3"
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
+        <input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <br /><br />
 
-      <button
-        className="bg-blue-600 text-white px-4 py-2 mt-4 w-full"
-        onClick={handleLogin}
-      >
-        Login
-      </button>
+        <button type="submit">Login</button>
+      </form>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <p>
+        New user? <a href="/signup">Signup here</a>
+      </p>
     </div>
   );
 }

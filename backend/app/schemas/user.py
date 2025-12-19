@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 class UserCreate(BaseModel):
     fullname: str
@@ -15,6 +16,7 @@ class UserOut(BaseModel):
     fullname: str
     phone: str
     role: str
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
