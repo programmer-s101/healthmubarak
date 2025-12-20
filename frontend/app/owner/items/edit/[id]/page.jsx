@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import api from "@/lib/api";
 
 import Button from "../../../../components/ui/Button";
@@ -22,7 +23,6 @@ export default function EditItemPage() {
     in_stock: true,
   });
 
-  // Load item WITHOUT calling /owner/items/{id}
   useEffect(() => {
     const loadItem = async () => {
       try {
@@ -89,63 +89,112 @@ export default function EditItemPage() {
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6 max-w-lg">
-      <h1 className="text-xl font-bold mb-4">Edit Item</h1>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-lime-100 flex items-center justify-center p-8 animate-fade-in">
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          placeholder="Item name"
-          className="w-full border p-2"
-          required
-        />
+      {/* CARD */}
+      <div className="w-full max-w-xl rounded-3xl bg-[#fdfefe] shadow-2xl p-8">
 
-        <input
-          name="price"
-          type="number"
-          value={form.price}
-          onChange={handleChange}
-          placeholder="Price"
-          className="w-full border p-2"
-          required
-        />
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Edit Item
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Update product details and availability
+          </p>
+        </div>
 
-        <input
-          name="unit"
-          value={form.unit}
-          onChange={handleChange}
-          placeholder="Unit"
-          className="w-full border p-2"
-          required
-        />
+        {/* FORM */}
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        <label className="flex gap-2 items-center">
-          <input
-            type="checkbox"
-            name="is_preorder"
-            checked={form.is_preorder}
+          <InputField
+            name="name"
+            value={form.name}
             onChange={handleChange}
+            placeholder="Item name"
           />
-          Preorder
-        </label>
 
-        <label className="flex gap-2 items-center">
-          <input
-            type="checkbox"
-            name="in_stock"
-            checked={form.in_stock}
+          <InputField
+            name="price"
+            type="number"
+            value={form.price}
             onChange={handleChange}
+            placeholder="Price (₹)"
           />
-          In Stock
-        </label>
 
-       <Button type="submit" disabled={saving}>
-  {saving ? "Saving..." : "Update Item"}
-</Button>
+          <InputField
+            name="unit"
+            value={form.unit}
+            onChange={handleChange}
+            placeholder="Unit (pcs / kg / ml)"
+          />
 
-      </form>
+          {/* CHECKBOXES */}
+          <div className="space-y-2 pt-2">
+            <Checkbox
+              label="Available for Pre-Order"
+              name="is_preorder"
+              checked={form.is_preorder}
+              onChange={handleChange}
+            />
+            <Checkbox
+              label="Currently In Stock"
+              name="in_stock"
+              checked={form.in_stock}
+              onChange={handleChange}
+            />
+          </div>
+
+          {/* ACTIONS */}
+          <div className="pt-6 flex gap-3">
+            <Link href="/owner/items" className="flex-1">
+              <Button variant="secondary" className="w-full">
+                Cancel
+              </Button>
+            </Link>
+
+            <Button
+              type="submit"
+              disabled={saving}
+              className="flex-1 bg-gradient-to-b from-green-600 to-green-700 hover:brightness-110"
+            >
+              {saving ? "Saving..." : "Update Item"}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
+  );
+}
+
+/* ---------- UI HELPERS (no logic) ---------- */
+
+function InputField({ name, value, onChange, placeholder, type = "text" }) {
+  return (
+    <input
+      name={name}
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required
+      className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800
+                 focus:outline-none focus:ring-2 focus:ring-green-600 bg-white"
+    />
+  );
+}
+
+function Checkbox({ label, name, checked, onChange }) {
+  return (
+    <label className="flex items-center gap-3 text-gray-700">
+      <input
+        type="checkbox"
+        name={name}
+        checked={checked}
+        onChange={onChange}
+        className="accent-green-600 w-4 h-4"
+      />
+      <span className="text-sm">{label}</span>
+    </label>
   );
 }

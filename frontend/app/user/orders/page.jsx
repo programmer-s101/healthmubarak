@@ -26,27 +26,81 @@ export default function UserOrdersPage() {
   }, []);
 
   if (loading) return <Loader />;
-  if (!orders.length) return <p className="p-6">No orders yet</p>;
+
+  if (!orders.length)
+    return (
+      <div className="p-6 text-center">
+        <p className="text-gray-500">No orders yet 🌱</p>
+        <Button
+          className="mt-4 bg-green-600 hover:bg-green-700"
+          onClick={() => (window.location.href = "/user/items")}
+        >
+          Start Shopping
+        </Button>
+      </div>
+    );
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">My Orders</h1>
+    <div className="p-6 max-w-4xl mx-auto">
+      {/* HEADER */}
+      <div className="mb-6">
+        <button
+          onClick={() => (window.location.href = "/user/items")}
+          className="text-sm text-green-700 hover:underline"
+        >
+          ← Back to Items
+        </button>
 
-      {orders.map((order) => (
-        <div key={order.id} className="border p-4 mb-3 rounded">
-          <p><b>Order #</b>{order.id}</p>
-          <p>Status: {order.status}</p>
-          <p>Total: ₹{order.total_price}</p>
+        <h1 className="text-3xl font-bold text-green-800 mt-2">
+          My Orders
+        </h1>
+        <p className="text-sm text-gray-600">
+          Track your healthy purchases 🌿
+        </p>
+      </div>
 
-          <Button
-            size="sm"
-            className="mt-2"
-            onClick={() => (window.location.href = `/user/orders/${order.id}`)}
+      {/* ORDERS LIST */}
+      <div className="space-y-4">
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className="bg-white rounded-xl border border-green-100 shadow-sm p-5 hover:shadow-md transition"
           >
-            View
-          </Button>
-        </div>
-      ))}
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-semibold text-gray-800">
+                  Order #{order.id}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Total: ₹{order.total_price}
+                </p>
+              </div>
+
+              <span
+                className={`px-3 py-1 text-xs rounded-full font-medium
+                  ${
+                    order.status === "DELIVERED"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }
+                `}
+              >
+                {order.status}
+              </span>
+            </div>
+
+            <Button
+              size="sm"
+              className="mt-4 bg-green-600 hover:bg-green-700"
+              onClick={() =>
+                (window.location.href = `/user/orders/${order.id}`)
+              }
+            >
+              View Order Details
+            </Button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

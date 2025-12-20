@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------
+   GLOBAL BASE
+-------------------------- */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: #0b2f1a;
+}
+
+/* -------------------------
+   AUTH BACKGROUND
+-------------------------- */
+.auth-bg {
+  position: relative;
+  min-height: 100vh;
+  background-image: url("/login-bg.jpg");
+  background-size: cover;
+  background-position: center;
+}
+
+/* Soft sunlight overlay */
+.auth-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.35),
+    rgba(0, 0, 0, 0.55)
+  );
+  z-index: 1;
+}
+
+/* Foreground depth (bottom shadow) */
+.auth-bg::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 35%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65),
+    transparent
+  );
+  z-index: 2;
+}
+
+/* -------------------------
+   GLASS CARD
+-------------------------- */
+.glass-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* -------------------------
+   ENTRY ANIMATION
+-------------------------- */
+@keyframes fadeLift {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-lift {
+  animation: fadeLift 0.9s ease-out forwards;
+}

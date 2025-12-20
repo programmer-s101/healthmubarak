@@ -42,50 +42,79 @@ export default function UserItemsPage() {
     }
 
     localStorage.setItem("cart", JSON.stringify(cart));
-    loadCartCount(); // 🔥 update badge
+    loadCartCount();
     alert("Item added to cart");
   };
 
   if (loading) return <Loader />;
 
   return (
-    <div className="p-6">
-      {/* 🔥 HEADER */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Available Items</h1>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-100 p-8">
 
-        <Button onClick={() => (window.location.href = "/user/cart")}>
-          Cart ({cartCount})
-        </Button>
+      {/* HEADER */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">
+            Fresh & Organic Products
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Handpicked for your healthy lifestyle 🌿
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            variant="secondary"
+            onClick={() => (window.location.href = "/user/orders")}
+          >
+            My Orders
+          </Button>
+
+          <Button onClick={() => (window.location.href = "/user/cart")}>
+            Cart ({cartCount})
+          </Button>
+        </div>
       </div>
-<div className="flex justify-between items-center mb-4">
-  <h1 className="text-xl font-bold">Available Items</h1>
-
-  <Button onClick={() => window.location.href = "/user/orders"}>
-    My Orders
-  </Button>
-</div>
 
       {/* ITEMS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item) => (
           <div
             key={item.id}
-            className="border rounded p-4 shadow"
+            className="group rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-300 p-6 flex flex-col"
           >
-            <h2 className="font-semibold">{item.name}</h2>
-            <p>₹{item.price}</p>
-            <p>Unit: {item.unit}</p>
-            <p className={item.in_stock ? "text-green-600" : "text-red-600"}>
-              {item.in_stock ? "In Stock" : "Out of Stock"}
-            </p>
+            {/* PRODUCT INFO */}
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-800 group-hover:text-green-700 transition">
+                {item.name}
+              </h2>
 
+              <p className="mt-1 text-xl font-bold text-green-700">
+                ₹{item.price}
+              </p>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Unit: {item.unit}
+              </p>
+
+              <p
+                className={`mt-2 text-sm font-medium ${
+                  item.in_stock
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {item.in_stock ? "In Stock" : "Out of Stock"}
+              </p>
+            </div>
+
+            {/* ACTION */}
             <Button
               disabled={!item.in_stock}
               onClick={() => addToCart(item)}
-              className="mt-2"
+              className="mt-4"
             >
-              Add to Cart
+              {item.in_stock ? "Add to Cart" : "Unavailable"}
             </Button>
           </div>
         ))}

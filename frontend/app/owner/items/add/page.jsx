@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import api from "@/lib/api";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
@@ -30,19 +31,70 @@ export default function AddItemPage() {
   };
 
   return (
-    <div className="p-6 max-w-md">
-      <h1 className="text-xl font-bold mb-4">Add Item</h1>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center p-8">
 
-      <Input placeholder="Item name" value={name} onChange={e => setName(e.target.value)} />
-      <Input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-      <Input placeholder="Unit (pcs/kg/ml)" value={unit} onChange={e => setUnit(e.target.value)} />
+      {/* CARD */}
+      <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl p-8 animate-fade-in">
 
-      <label className="block mt-2">
-        <input type="checkbox" checked={isPreorder} onChange={e => setIsPreorder(e.target.checked)} />
-        <span className="ml-2">Preorder</span>
-      </label>
+        {/* HEADER */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Add New Item
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Add a fresh organic product to your inventory
+          </p>
+        </div>
 
-      <Button className="mt-4" onClick={submit}>Add Item</Button>
+        {/* FORM */}
+        <div className="space-y-4">
+          <Input
+            placeholder="Item name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <Input
+            placeholder="Price (₹)"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+
+          <Input
+            placeholder="Unit (pcs / kg / ml)"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+          />
+
+          {/* PREORDER */}
+          <label className="flex items-center gap-3 mt-2 text-gray-700">
+            <input
+              type="checkbox"
+              checked={isPreorder}
+              onChange={(e) => setIsPreorder(e.target.checked)}
+              className="accent-green-600 w-4 h-4"
+            />
+            <span className="text-sm">Available for Pre-Order</span>
+          </label>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="mt-8 flex gap-3">
+          <Link href="/owner/items" className="flex-1">
+            <Button variant="secondary" className="w-full">
+              Cancel
+            </Button>
+          </Link>
+
+          <Button
+            className="flex-1 bg-gradient-to-b from-green-600 to-green-700 hover:brightness-110"
+            onClick={submit}
+          >
+            Add Item
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

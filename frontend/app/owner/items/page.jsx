@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import api from "@/lib/api";
 
 import Table from "../../components/ui/Table";
@@ -11,7 +12,6 @@ export default function OwnerItemsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load items (public list endpoint – correct)
   const loadItems = async () => {
     try {
       setLoading(true);
@@ -29,7 +29,6 @@ export default function OwnerItemsPage() {
     loadItems();
   }, []);
 
-  // Delete item (OWNER endpoint – correct)
   const handleDelete = async (id) => {
     if (!confirm("Delete this item?")) return;
 
@@ -42,7 +41,6 @@ export default function OwnerItemsPage() {
     }
   };
 
-  // Toggle stock (simple public toggle – correct)
   const toggleStock = async (item) => {
     try {
       await api.post(`/items/toggle-stock`, null, {
@@ -62,15 +60,47 @@ export default function OwnerItemsPage() {
 
   if (loading) return <Loader />;
 
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Items</h1>
+return (
+  <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 p-8 animate-fade-in">
+
+    {/* HEADER */}
+    <div className="mb-8 flex items-center justify-between">
+      <div>
+        <h1 className="text-4xl font-bold text-gray-800">Items</h1>
+        <p className="text-gray-600 mt-1">
+          Control your organic product inventory
+        </p>
+      </div>
+
+      <div className="flex gap-3">
+        <Link href="/owner/dashboard">
+          <Button variant="secondary">← Dashboard</Button>
+        </Link>
+
         <Button onClick={() => (window.location.href = "/owner/items/add")}>
           + Add Item
         </Button>
       </div>
+    </div>
 
+    {/* STATS */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+      <StatCard
+        label="Total Items"
+        value={items.length}
+      />
+      <StatCard
+        label="In Stock"
+        value={items.filter(i => i.in_stock).length}
+      />
+      <StatCard
+        label="Out of Stock"
+        value={items.filter(i => !i.in_stock).length}
+      />
+    </div>
+
+    {/* TABLE PANEL */}
+    <div className="rounded-3xl bg-white shadow-2xl p-6">
       <Table
         columns={["Name", "Price", "Unit", "Stock", "Actions"]}
         data={items.map((item) => ({
@@ -107,5 +137,18 @@ export default function OwnerItemsPage() {
         }))}
       />
     </div>
+  </div>
+);
+
+}
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded-2xl bg-white p-6 shadow-md hover:shadow-xl transition transform hover:-translate-y-1">
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="mt-2 text-3xl font-bold text-green-700">
+        {value}
+      </p>
+    </div>
   );
 }
+
