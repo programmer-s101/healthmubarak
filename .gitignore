@@ -12,16 +12,28 @@ __pycache__/
 env/
 venv/
 
+# User uploads
+backend/uploads/
+
 # Environment files
 .env
 .env.*
 backend/.env
 frontend/.env
 
+# Database
+*.sqlite
+*.sqlite3
+
 # OS / Editor
 .DS_Store
 .idea/
 .vscode/
 
-# Compiled / build
+# Tests / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
 *.log
