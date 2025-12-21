@@ -15,14 +15,22 @@ export default function EditItemPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
   const [form, setForm] = useState({
     name: "",
     price: "",
     unit: "",
     is_preorder: false,
     in_stock: true,
+    base_qty: 1,
+    min_qty: 1,
+    max_qty: 10,
+    step_qty: 1,
   });
 
+  /* ---------------- LOAD ITEM ---------------- */
   useEffect(() => {
     const loadItem = async () => {
       try {
@@ -41,10 +49,15 @@ export default function EditItemPage() {
           unit: item.unit,
           is_preorder: item.is_preorder,
           in_stock: item.in_stock,
+          base_qty: item.base_qty ?? 1,
+          min_qty: item.min_qty ?? 1,
+          max_qty: item.max_qty ?? 10,
+          step_qty: item.step_qty ?? 1,
         });
-      } catch (err) {
-        console.error(err);
-        alert("Failed to load item");
+
+        if (item.image_path) {
+          setImagePreview(`http://localhost:8000/${item.image_path}`);
+        }
       } finally {
         setLoading(false);
       }
@@ -53,33 +66,35 @@ export default function EditItemPage() {
     loadItem();
   }, [id, router]);
 
+  /* ---------------- HANDLERS ---------------- */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
-    try {
-      await api.put(`/owner/items/${id}`, null, {
-        params: {
-          name: form.name,
-          price: form.price,
-          unit: form.unit,
-          is_preorder: form.is_preorder,
-          in_stock: form.in_stock,
-        },
-      });
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    if (imageFile) fd.append("image", imageFile);
 
+    try {
+      await api.put(`/items/update/${id}`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       alert("Item updated");
       router.push("/owner/items");
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Failed to update item");
     } finally {
       setSaving(false);
@@ -88,49 +103,92 @@ export default function EditItemPage() {
 
   if (loading) return <Loader />;
 
+  /* ---------------- UI ---------------- */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-lime-100 flex items-center justify-center p-8 animate-fade-in">
+    <div className="min-h-screen bg-green-50 flex justify-center p-8">
+      <div className="max-w-xl w-full bg-white p-8 rounded-2xl shadow">
+        <h1 className="text-2xl font-bold mb-6">Edit Item</h1>
 
-      {/* CARD */}
-      <div className="w-full max-w-xl rounded-3xl bg-[#fdfefe] shadow-2xl p-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-        {/* HEADER */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Edit Item
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Update product details and availability
-          </p>
-        </div>
+          {/* IMAGE */}
+          <Section title="Item Image">
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                className="w-full h-48 object-cover rounded-xl border"
+                alt="Item"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500">
+              Leave empty to keep existing image
+            </p>
+          </Section>
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* BASIC INFO */}
+          <Section title="Basic Information">
+            <LabeledInput
+              label="Item Name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+            />
+            <LabeledInput
+              label="Price (₹)"
+              name="price"
+              type="number"
+              value={form.price}
+              onChange={handleChange}
+            />
+            <LabeledInput
+              label="Unit"
+              name="unit"
+              value={form.unit}
+              onChange={handleChange}
+              placeholder="pcs / kg / g / ml"
+            />
+          </Section>
 
-          <InputField
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Item name"
-          />
+          {/* QUANTITY */}
+          <Section title="Quantity Configuration">
+            <LabeledInput
+              label="Base Quantity"
+              name="base_qty"
+              type="number"
+              value={form.base_qty}
+              onChange={handleChange}
+            />
+            <LabeledInput
+              label="Minimum Quantity"
+              name="min_qty"
+              type="number"
+              value={form.min_qty}
+              onChange={handleChange}
+            />
+            <LabeledInput
+              label="Maximum Quantity"
+              name="max_qty"
+              type="number"
+              value={form.max_qty}
+              onChange={handleChange}
+            />
+            <LabeledInput
+              label="Step Size"
+              name="step_qty"
+              type="number"
+              value={form.step_qty}
+              onChange={handleChange}
+            />
+          </Section>
 
-          <InputField
-            name="price"
-            type="number"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Price (₹)"
-          />
-
-          <InputField
-            name="unit"
-            value={form.unit}
-            onChange={handleChange}
-            placeholder="Unit (pcs / kg / ml)"
-          />
-
-          {/* CHECKBOXES */}
-          <div className="space-y-2 pt-2">
+          {/* FLAGS */}
+          <Section title="Availability">
             <Checkbox
               label="Available for Pre-Order"
               name="is_preorder"
@@ -143,23 +201,23 @@ export default function EditItemPage() {
               checked={form.in_stock}
               onChange={handleChange}
             />
-          </div>
+          </Section>
 
           {/* ACTIONS */}
-          <div className="pt-6 flex gap-3">
+          <div className="flex gap-3 pt-4">
             <Link href="/owner/items" className="flex-1">
               <Button variant="secondary" className="w-full">
                 Cancel
               </Button>
             </Link>
+           <Button
+  type="submit"
+  className="flex-1"
+  disabled={saving}
+>
+  {saving ? "Saving..." : "Update Item"}
+</Button>
 
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 bg-gradient-to-b from-green-600 to-green-700 hover:brightness-110"
-            >
-              {saving ? "Saving..." : "Update Item"}
-            </Button>
           </div>
         </form>
       </div>
@@ -167,33 +225,34 @@ export default function EditItemPage() {
   );
 }
 
-/* ---------- UI HELPERS (no logic) ---------- */
+/* ---------------- UI HELPERS ---------------- */
 
-function InputField({ name, value, onChange, placeholder, type = "text" }) {
+function Section({ title, children }) {
   return (
-    <input
-      name={name}
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      required
-      className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800
-                 focus:outline-none focus:ring-2 focus:ring-green-600 bg-white"
-    />
+    <div className="space-y-3 border-t pt-4">
+      <p className="text-sm font-semibold text-gray-800">{title}</p>
+      {children}
+    </div>
   );
 }
 
-function Checkbox({ label, name, checked, onChange }) {
+function LabeledInput({ label, ...props }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-gray-600">{label}</label>
+      <input
+        {...props}
+        className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-green-600"
+        required
+      />
+    </div>
+  );
+}
+
+function Checkbox({ label, ...props }) {
   return (
     <label className="flex items-center gap-3 text-gray-700">
-      <input
-        type="checkbox"
-        name={name}
-        checked={checked}
-        onChange={onChange}
-        className="accent-green-600 w-4 h-4"
-      />
+      <input type="checkbox" {...props} className="accent-green-600 w-4 h-4" />
       <span className="text-sm">{label}</span>
     </label>
   );
