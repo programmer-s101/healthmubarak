@@ -25,3 +25,6 @@ frontend/.env
 
 # Compiled / build
 *.log
+
+# Uploaded media
+backend/uploads/
