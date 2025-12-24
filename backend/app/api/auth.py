@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()   # ✅ MUST be before os.getenv()
+
+
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -9,8 +15,8 @@ from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-SECRET_KEY = "MYSECRET123"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM =os.getenv("ALGORITHM")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
