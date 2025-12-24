@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import owner_orders
 from app.api import owner_delivery
 from app.routers import owner_items
+from fastapi.staticfiles import StaticFiles
 
 
 # Import API routers ONLY
@@ -44,3 +45,9 @@ app.add_middleware(
 @app.get("/ping")
 def ping():
     return {"status": "ok"}
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads",
+)
