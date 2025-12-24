@@ -1,27 +1,29 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, Text
 from app.database import Base
+from datetime import date
+
 
 class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
+
     name = Column(String, nullable=False)
+    unit = Column(String)
+    price = Column(Float, nullable=False)
 
-    # PRICE IS BASE PRICE (IMPORTANT)
-    price = Column(Float, nullable=False, default=0.0)
-
-    unit = Column(String, default="pcs")  # kg, g, litre, pcs
-
-    # 🔽 NEW QUANTITY CONFIG (OPTIONAL, NON-BREAKING)
-    base_quantity = Column(Float, nullable=True)
-    min_quantity = Column(Float, nullable=True)
-    max_quantity = Column(Float, nullable=True)
-    step_size = Column(Float, nullable=True)
-
-    in_stock = Column(Boolean, default=True)
     is_preorder = Column(Boolean, default=False)
-    availability_date = Column(Date, nullable=True)
-    created_at = Column(Date)
+    in_stock = Column(Boolean, default=True)
 
-   # ✅ IMAGE PATH (NEW)
-    image_path = Column(String, nullable=True)
+    availability_date = Column(Date, nullable=True)
+    created_at = Column(Date, default=date.today)
+
+    # ✅ MATCH DATABASE COLUMN NAMES EXACTLY
+    base_quantity = Column(Float, default=1)
+    min_quantity = Column(Float, default=1)
+    max_quantity = Column(Float, default=100)
+    step_size = Column(Float, default=1)
+
+    # ✅ IMAGE (DO NOT CHANGE)
+    image_url = Column(Text, nullable=True)
+    image_path = Column(Text, nullable=True)

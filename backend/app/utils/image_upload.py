@@ -1,19 +1,18 @@
-# app/utils/image_upload.py
-
 import os
 import uuid
 from fastapi import UploadFile
 
 UPLOAD_DIR = "uploads/items"
-
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-def save_item_image(file: UploadFile) -> str:
-    ext = file.filename.split(".")[-1]
+
+def save_item_image(image: UploadFile):
+    ext = image.filename.split(".")[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    path = os.path.join(UPLOAD_DIR, filename)
+    file_path = os.path.join(UPLOAD_DIR, filename)
 
-    with open(path, "wb") as buffer:
-        buffer.write(file.file.read())
+    with open(file_path, "wb") as f:
+        f.write(image.file.read())
 
-    return f"/uploads/items/{filename}"
+    image_url = f"/uploads/items/{filename}"
+    return image_url, file_path

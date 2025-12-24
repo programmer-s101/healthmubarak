@@ -18,7 +18,7 @@ export default function AddItemPage() {
   const [maxQty, setMaxQty] = useState("");
   const [stepQty, setStepQty] = useState("1");
 
-  // ✅ Image upload (NEW – SAFE)
+  // Image upload
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -33,16 +33,20 @@ export default function AddItemPage() {
       formData.append("name", name);
       formData.append("price", price);
       formData.append("unit", unit);
-      formData.append("is_preorder", isPreorder);
+      formData.append("is_preorder", String(isPreorder));
 
-      // image is OPTIONAL
+      // quantity fields
+      formData.append("base_qty", baseQty);
+      formData.append("min_qty", minQty);
+      formData.append("max_qty", maxQty || "");
+      formData.append("step_qty", stepQty);
+
       if (image) {
         formData.append("image", image);
       }
 
-      await api.post("/items/add", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // DO NOT set Content-Type manually for multipart formdata
+      await api.post("/items/add", formData);
 
       alert("Item added");
       window.location.href = "/owner/items";

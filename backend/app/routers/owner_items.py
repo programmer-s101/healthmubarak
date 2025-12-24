@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.item import Item
@@ -16,17 +16,19 @@ def list_items(db: Session = Depends(get_db)):
 # ➕ CREATE ITEM
 @router.post("/")
 def create_item(
-    name: str,
-    price: float,
-    unit: str = "pcs",
-    is_preorder: bool = False,
-    in_stock: bool = True,
+    name: str = Form(...),
+    price: float = Form(...),
+    unit: str = Form("pcs"),
+    is_preorder: bool = Form(False),
+    in_stock: bool = Form(True),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
     image_url = None
+    image_path = None
+
     if image:
-        image_url = save_item_image(image)
+        image_url, image_path = save_item_image(image)
 
     item = Item(
         name=name,
@@ -35,6 +37,7 @@ def create_item(
         is_preorder=is_preorder,
         in_stock=in_stock,
         image_url=image_url,
+        image_path=image_path,
     )
 
     db.add(item)
@@ -42,15 +45,16 @@ def create_item(
     db.refresh(item)
     return item
 
-# ✏️ UPDATE ITEM (ALL FIELDS)
+
+# ✏️ UPDATE ITEM
 @router.put("/{item_id}")
 def update_item(
     item_id: int,
-    name: str,
-    price: float,
-    unit: str,
-    is_preorder: bool,
-    in_stock: bool,
+    name: str = Form(...),
+    price: float = Form(...),
+    unit: str = Form(...),
+    is_preorder: bool = Form(...),
+    in_stock: bool = Form(...),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
@@ -59,7 +63,7 @@ def update_item(
         raise HTTPException(status_code=404, detail="Item not found")
 
     if image:
-        item.image_url = save_item_image(image)
+        item.image_url, item.image_path = save_item_image(image)
 
     item.name = name
     item.price = price
@@ -70,6 +74,7 @@ def update_item(
     db.commit()
     db.refresh(item)
     return item
+
 
 # 🗑️ DELETE ITEM
 @router.delete("/{item_id}")
@@ -83,7 +88,7 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     return {"message": "Item deleted"}
 
 
-# 🔄 TOGGLE STOCK (OWNER)
+# 🔄 TOGGLE STOCK
 @router.patch("/{item_id}/stock")
 def toggle_stock(item_id: int, db: Session = Depends(get_db)):
     item = db.query(Item).filter(Item.id == item_id).first()

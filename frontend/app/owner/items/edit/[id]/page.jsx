@@ -55,8 +55,10 @@ export default function EditItemPage() {
           step_qty: item.step_qty ?? 1,
         });
 
-        if (item.image_path) {
-          setImagePreview(`http://localhost:8000/${item.image_path}`);
+        const img = item.image_url || item.image_path;
+        if (img) {
+          const src = img.startsWith("http") ? img : `http://localhost:8000/${img}`;
+          setImagePreview(src);
         }
       } finally {
         setLoading(false);
@@ -85,16 +87,16 @@ export default function EditItemPage() {
     setSaving(true);
 
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    // append all form values
+    Object.entries(form).forEach(([k, v]) => fd.append(k, String(v)));
     if (imageFile) fd.append("image", imageFile);
 
     try {
-      await api.put(`/items/update/${id}`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.put(`/items/update/${id}`, fd); // do not set Content-Type manually
       alert("Item updated");
       router.push("/owner/items");
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Failed to update item");
     } finally {
       setSaving(false);
@@ -210,14 +212,13 @@ export default function EditItemPage() {
                 Cancel
               </Button>
             </Link>
-           <Button
-  type="submit"
-  className="flex-1"
-  disabled={saving}
->
-  {saving ? "Saving..." : "Update Item"}
-</Button>
-
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Update Item"}
+            </Button>
           </div>
         </form>
       </div>

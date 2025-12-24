@@ -1,15 +1,13 @@
+# app/routers/items.py
+
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.item import Item
-import uuid
-import os
-import shutil
+from app.utils.image_upload import save_item_image
 
 router = APIRouter(prefix="/items", tags=["Items"])
 
-UPLOAD_DIR = "uploads/items"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # ➕ ADD ITEM
 @router.post("/add")
@@ -19,7 +17,7 @@ def add_item(
     unit: str = Form("pcs"),
     is_preorder: bool = Form(False),
 
-    # 🔹 Quantity config
+    # Frontend names
     base_qty: float = Form(1),
     min_qty: float = Form(1),
     max_qty: float = Form(10),
@@ -28,13 +26,9 @@ def add_item(
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
-    image_path = None
-
+    image_url = None
     if image:
-        file_path = f"{UPLOAD_DIR}/{uuid.uuid4()}_{image.filename}"
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-        image_path = file_path
+        image_url = save_item_image(image)
 
     item = Item(
         name=name,
@@ -43,13 +37,13 @@ def add_item(
         is_preorder=is_preorder,
         in_stock=True,
 
-        # ✅ Quantity fields
-        base_qty=base_qty,
-        min_qty=min_qty,
-        max_qty=max_qty,
-        step_qty=step_qty,
+        # 🔁 MAP TO DB COLUMNS
+        base_quantity=base_qty,
+        min_quantity=min_qty,
+        max_quantity=max_qty,
+        step_size=step_qty,
 
-        image_path=image_path,
+        image_url=image_url,
     )
 
     db.add(item)
@@ -68,14 +62,12 @@ def list_items(db: Session = Depends(get_db)):
 @router.post("/toggle-stock")
 def toggle_stock(item_id: int, db: Session = Depends(get_db)):
     item = db.query(Item).filter(Item.id == item_id).first()
-
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
     item.in_stock = not item.in_stock
     db.commit()
     db.refresh(item)
-
     return {
         "item_id": item.id,
         "in_stock": item.in_stock,
@@ -83,7 +75,7 @@ def toggle_stock(item_id: int, db: Session = Depends(get_db)):
     }
 
 
-# ✏️ UPDATE ITEM (SAFE IMAGE + QUANTITY SUPPORT)
+# ✏️ UPDATE ITEM (422 FIXED)
 @router.put("/update/{item_id}")
 def update_item(
     item_id: int,
@@ -94,7 +86,7 @@ def update_item(
     is_preorder: bool = Form(...),
     in_stock: bool = Form(...),
 
-    # 🔹 Quantity config
+    # Frontend names
     base_qty: float = Form(...),
     min_qty: float = Form(...),
     max_qty: float = Form(...),
@@ -107,25 +99,22 @@ def update_item(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    # Update basic fields
+    # Basic fields
     item.name = name
     item.price = price
     item.unit = unit
     item.is_preorder = is_preorder
     item.in_stock = in_stock
 
-    # Update quantity config
-    item.base_qty = base_qty
-    item.min_qty = min_qty
-    item.max_qty = max_qty
-    item.step_qty = step_qty
+    # 🔁 MAP TO DB COLUMNS
+    item.base_quantity = base_qty
+    item.min_quantity = min_qty
+    item.max_quantity = max_qty
+    item.step_size = step_qty
 
     # Optional image update
     if image:
-        file_path = f"{UPLOAD_DIR}/{uuid.uuid4()}_{image.filename}"
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(image.file, buffer)
-        item.image_path = file_path
+        item.image_url = save_item_image(image)
 
     db.commit()
     db.refresh(item)
