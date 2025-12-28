@@ -1,9 +1,16 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()   # ✅ MUST be before os.getenv()
+
 import jwt
 from datetime import datetime, timedelta
 from typing import Dict
 
-SECRET = "SUPER_SECRET_KEY"  # move to env later
-ALGO = "HS256"
+SECRET = os.getenv("SECRET_KEY")
+
+ALGO = os.getenv("ALGORITHM")
+
 EXP_DAYS = 7
 
 def create_token(user: Dict) -> str:

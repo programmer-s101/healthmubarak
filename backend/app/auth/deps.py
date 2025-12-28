@@ -1,3 +1,9 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 from jose import jwt
@@ -7,8 +13,10 @@ from app.models.user import User
 
 from app.api.auth import get_current_user
 
-SECRET_KEY = "MYSECRET123"
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+ALGORITHM = os.getenv("ALGORITHM")
+
 
 
 def role_required(role: str):
